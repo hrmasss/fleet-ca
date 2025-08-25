@@ -1,0 +1,124 @@
+from workspace.models import User
+from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
+
+
+def get_user_permissions(user):
+    """Extract clean permission names for a user."""
+    if user.is_superuser:
+        return ["*"]
+
+    # Get all user permissions (both user and group permissions)
+    all_perms = user.get_all_permissions()
+
+    # Clean permission names - remove app prefix and exclude internal permissions
+    cleaned_perms = []
+    exclude_apps = {"auth", "admin", "contenttypes", "sessions"}
+
+    for perm in all_perms:
+        if "." in perm:
+            app_label, perm_name = perm.split(".", 1)
+            if app_label not in exclude_apps:
+                cleaned_perms.append(perm_name)
+
+    return sorted(list(set(cleaned_perms)))
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """Serializer for user profile data (read-only)."""
+
+    full_name = serializers.SerializerMethodField()
+    groups = serializers.StringRelatedField(many=True, read_only=True)
+    permissions = serializers.SerializerMethodField()
+    email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "full_name",
+            "groups",
+            "permissions",
+        ]
+        read_only_fields = [
+            "id",
+            "username",
+            "email",
+            "groups",
+            "permissions",
+        ]
+
+    @extend_schema_field(
+        {
+            "type": "string",
+            "format": "email",
+            "nullable": True,
+            "title": "Email address",
+        }
+    )
+    def get_email(self, obj):
+        return obj.email or None
+
+    @extend_schema_field(
+        {
+            "type": "string",
+            "description": "User's full name or username in title case if full name is blank",
+            "example": "John Doe",
+        }
+    )
+    def get_full_name(self, obj) -> str:
+        """Return full name or username in title case if full name is blank."""
+        full_name = obj.get_full_name().strip()
+        if full_name:
+            return full_name
+        return obj.username.title()
+
+    @extend_schema_field(
+        {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": 'User permissions. "*" indicates all permissions (superuser).',
+            "example": ["view_order", "add_order"],
+        }
+    )
+    def get_permissions(self, obj):
+        """Return clean permission names for the user."""
+        return get_user_permissions(obj)
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating user profile (limited fields)."""
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name"]
+
+
+class RegisterSerializer(serializers.Serializer):
+    """Register a new user and return minimal info.
+
+    Also supports passing an optional workspace_name; if omitted, a default will be used.
+    """
+
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True, min_length=8)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    workspace_name = serializers.CharField(
+        required=False, allow_blank=True, max_length=200
+    )
+
+    def validate_username(self, value: str) -> str:
+        if User.objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError("Username already taken")
+        return value
+
+    def validate_email(self, value: str) -> str:
+        if value and User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Email already registered")
+        return value
+
+    def create(self, validated_data):
+        # Creation handled in the view to also create workspace; keep serializer simple
+        return validated_data
