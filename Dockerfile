@@ -16,16 +16,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
-ENV SECRET_KEY=build-time-secret-key \
-  DEBUG=False \
-  ALLOWED_HOSTS=* \
-  DATABASE_URL=sqlite:///tmp/build.db
-
-RUN python manage.py collectstatic --noinput
-
 RUN adduser -D -u 1000 app && chown -R app:app /app
-
-USER app
 
 EXPOSE 8000
 

@@ -36,7 +36,11 @@ services:
       retries: 5
       start_period: 60s
     command: >-
-      sh -c "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 --workers 3 core.wsgi:application"
+      sh -c "mkdir -p /app/staticfiles && 
+             chown -R app:app /app/staticfiles && 
+             su app -c 'python manage.py collectstatic --noinput' && 
+             su app -c 'python manage.py migrate' && 
+             su app -c 'gunicorn --bind 0.0.0.0:8000 --workers 3 core.wsgi:application'"
     restart: unless-stopped
 
   nginx:
