@@ -4,9 +4,11 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, OpenApiResponse
-from .models import Workspace, WorkspaceMembership
+from .models import Workspace, WorkspaceMembership, Subscription
+from .role_defaults import seed_workspace_roles
 from .rbac import WorkspaceHeaderResolverMixin
 from rest_framework import serializers
+from django.conf import settings
 from workspace.serializers import (
     UserProfileSerializer,
     UserProfileUpdateSerializer,
@@ -19,8 +21,6 @@ class WorkspaceSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "branding_logo",
-            "branding_color",
             "owner",
             "created_at",
             "updated_at",
@@ -31,61 +31,12 @@ class WorkspaceSerializer(serializers.ModelSerializer):
 class WorkspaceCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workspace
-        fields = ["name", "branding_logo", "branding_color"]
+
+    fields = ["name"]
 
 
 def _seed_default_roles(workspace: Workspace) -> None:
-    from .models import WorkspaceRole, RolePermission, PermissionScope
-
-    owner = WorkspaceRole.objects.create(
-        workspace=workspace, name="Owner", is_system=True
-    )
-    all_codes = [
-        "content.view",
-        "content.change",
-        "campaigns.view",
-        "campaigns.change",
-        "social_accounts.view",
-        "social_accounts.change",
-        "workspace_users.view",
-        "workspace_users.change",
-        "roles.view",
-        "roles.change",
-    ]
-    RolePermission.objects.bulk_create(
-        [
-            RolePermission(role=owner, code=c, scope=PermissionScope.ALL)
-            for c in all_codes
-        ]
-    )
-
-    editor = WorkspaceRole.objects.create(
-        workspace=workspace, name="Editor", is_system=True
-    )
-    editor_codes = [
-        ("content.view", PermissionScope.ALL),
-        ("content.change", PermissionScope.ALL),
-        ("campaigns.view", PermissionScope.ALL),
-        ("campaigns.change", PermissionScope.ALL),
-        ("published_posts.view", PermissionScope.ALL),
-        ("published_posts.change", PermissionScope.ALL),
-    ]
-    RolePermission.objects.bulk_create(
-        [RolePermission(role=editor, code=c, scope=s) for c, s in editor_codes]
-    )
-
-    member = WorkspaceRole.objects.create(
-        workspace=workspace, name="Member", is_system=True
-    )
-    member_codes = [
-        ("content.view", PermissionScope.ALL),
-        ("content.change", PermissionScope.OWN),
-        ("campaigns.view", PermissionScope.ALL),
-        ("published_posts.view", PermissionScope.ALL),
-    ]
-    RolePermission.objects.bulk_create(
-        [RolePermission(role=member, code=c, scope=s) for c, s in member_codes]
-    )
+    seed_workspace_roles(workspace)
 
 
 class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateAPIView):
@@ -122,7 +73,75 @@ class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateA
             WorkspaceMembership.objects.create(
                 workspace=ws, user=request.user, role=owner_role
             )
+            # Auto-create a subscription for onboarding (dev-friendly)
+            Subscription.objects.create(
+                workspace=ws,
+                plan="free",
+                status="active" if settings.DEBUG else "trial",
+                limits={},
+            )
         return Response(WorkspaceSerializer(ws).data, status=201)
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = [
+            "id",
+            "workspace",
+            "plan",
+            "status",
+            "current_period_end",
+            "limits",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "workspace", "created_at", "updated_at"]
+
+
+class SubscriptionView(WorkspaceHeaderResolverMixin, generics.RetrieveUpdateAPIView):
+    """Get or update the subscription for the active workspace.
+
+    - GET: any active member can view
+    - PATCH: only workspace owner; in DEBUG, allows toggling status/plan/limits directly
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubscriptionSerializer
+
+    def get_object(self):
+        ws = self.get_workspace(self.request)
+        if not ws:
+            raise serializers.ValidationError(
+                "Workspace not resolved. Provide X-Workspace-ID header."
+            )
+        try:
+            sub = ws.subscription
+        except Subscription.DoesNotExist:
+            sub = Subscription.objects.create(
+                workspace=ws, plan="free", status="trial", limits={}
+            )
+        return sub
+
+    def patch(self, request, *args, **kwargs):
+        sub = self.get_object()
+        ws = sub.workspace
+        if request.user != ws.owner:
+            return Response(
+                {"detail": "Only owner can update subscription."}, status=403
+            )
+        # Dev-friendly: allow plan/status/limits updates directly in DEBUG
+        data = {
+            k: v for k, v in request.data.items() if k in {"plan", "status", "limits"}
+        }
+        if not settings.DEBUG and ("status" in data or "limits" in data):
+            # In non-debug, restrict updates to plan only (placeholder)
+            data.pop("status", None)
+            data.pop("limits", None)
+        serializer = self.get_serializer(sub, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class UserProfileView(generics.RetrieveAPIView):

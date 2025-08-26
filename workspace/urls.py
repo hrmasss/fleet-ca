@@ -4,6 +4,7 @@ from workspace.api import (
     UserProfileUpdateView,
     WorkspaceListCreateView,
     MyMembershipsView,
+    SubscriptionView,
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     ),
     path("workspaces/", WorkspaceListCreateView.as_view(), name="workspaces"),
     path("memberships/", MyMembershipsView.as_view(), name="my-memberships"),
+    path("subscription/", SubscriptionView.as_view(), name="subscription"),
 ]

@@ -3,27 +3,6 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
 
-def get_user_permissions(user):
-    """Extract clean permission names for a user."""
-    if user.is_superuser:
-        return ["*"]
-
-    # Get all user permissions (both user and group permissions)
-    all_perms = user.get_all_permissions()
-
-    # Clean permission names - remove app prefix and exclude internal permissions
-    cleaned_perms = []
-    exclude_apps = {"auth", "admin", "contenttypes", "sessions"}
-
-    for perm in all_perms:
-        if "." in perm:
-            app_label, perm_name = perm.split(".", 1)
-            if app_label not in exclude_apps:
-                cleaned_perms.append(perm_name)
-
-    return sorted(list(set(cleaned_perms)))
-
-
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer for user profile data (read-only)."""
 
@@ -84,8 +63,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         }
     )
     def get_permissions(self, obj):
-        """Return clean permission names for the user."""
-        return get_user_permissions(obj)
+        """Return minimal permission indicator.
+
+        For now: '*' if superuser, else empty list. We'll wire RBAC-derived
+        permissions later when resource endpoints are added.
+        """
+        return ["*"] if obj.is_superuser else []
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
@@ -120,5 +103,4 @@ class RegisterSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
-        # Creation handled in the view to also create workspace; keep serializer simple
         return validated_data

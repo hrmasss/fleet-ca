@@ -17,8 +17,6 @@ class Workspace(TimeStampedModel):
         on_delete=models.PROTECT,
         related_name="owned_workspaces",
     )
-    branding_logo = models.CharField(max_length=500, blank=True)
-    branding_color = models.CharField(max_length=20, blank=True)
 
     def __str__(self) -> str:
         return self.name
@@ -105,3 +103,4 @@ class Subscription(TimeStampedModel):
     plan = models.CharField(max_length=50, default="free")
     status = models.CharField(max_length=20, default="active")
     current_period_end = models.DateTimeField(null=True, blank=True)
+    limits = models.JSONField(default=dict, blank=True)
