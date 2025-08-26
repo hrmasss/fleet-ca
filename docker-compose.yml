@@ -19,10 +19,8 @@ services:
       context: .
       dockerfile: Dockerfile
     image: oppora-backend:latest
-    environment:
-      SECRET_KEY: local-dev-secret-key
-      DEBUG: "True"
-      DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres"
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
