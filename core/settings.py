@@ -61,6 +61,13 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "drf_spectacular",
     "rest_framework_simplejwt",
+    # Auth
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",  # providers can be added later
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
 ]
 
 # Local applications
@@ -78,6 +85,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -141,6 +149,8 @@ AUTH_USER_MODEL = "workspace.User"
 # --- AUTHENTICATION BACKENDS ---
 AUTHENTICATION_BACKENDS = (
     "workspace.backends.EmailOrUsernameModelBackend",
+    # allauth needs its backend to manage email/username auth & social
+    "allauth.account.auth_backends.AuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 )
 
@@ -190,7 +200,6 @@ LANGUAGE_CODE = "en-us"
 USE_I18N = True
 
 # --- TIME ZONE ---
-# Use UTC by default; apps can localize per-user using pendulum/zoneinfo.
 TIME_ZONE = os.getenv("TIME_ZONE", "UTC")
 USE_TZ = True
 
@@ -206,6 +215,9 @@ CSRF_TRUSTED_ORIGINS = [o for o in csrf_trusted if o]
 
 # --- DEFAULT AUTO FIELD ---
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# --- SITES ---
+SITE_ID = int(os.getenv("SITE_ID", 1))
 
 # --- EMAIL CONFIGURATION ---
 EMAIL_BACKEND = (
@@ -301,6 +313,9 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": "/api",
+    "POSTPROCESSING_HOOKS": [
+        "common.spectacular_hooks.add_global_workspace_header",
+    ],
     "SWAGGER_UI_SETTINGS": {
         "filter": True,
         "docExpansion": "none",
@@ -310,3 +325,15 @@ SPECTACULAR_SETTINGS = {
         "tryItOutEnabled": True,
     },
 }
+
+# --- dj-rest-auth / allauth configuration ---
+REST_AUTH = {
+    "USE_JWT": True,
+    "TOKEN_MODEL": None,
+    "SESSION_LOGIN": False,
+}
+TOKEN_MODEL = None
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "none")
+ACCOUNT_USERNAME_REQUIRED = True

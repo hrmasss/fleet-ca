@@ -625,6 +625,24 @@ files = [
 Django = ">=4.2"
 
 [[package]]
+name = "dj-rest-auth"
+version = "7.0.1"
+description = "Authentication and Registration in Django Rest Framework"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "dj-rest-auth-7.0.1.tar.gz", hash = "sha256:3f8c744cbcf05355ff4bcbef0c8a63645da38e29a0fdef3c3332d4aced52fb90"},
+]
+
+[package.dependencies]
+Django = ">=4.2,<6.0"
+djangorestframework = ">=3.13.0"
+
+[package.extras]
+with-social = ["django-allauth[socialaccount] (>=64.0.0)"]
+
+[[package]]
 name = "django"
 version = "5.2.5"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
@@ -644,6 +662,30 @@ tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 [package.extras]
 argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
+
+[[package]]
+name = "django-allauth"
+version = "65.11.0"
+description = "Integrated set of Django applications addressing authentication, registration, account management as well as 3rd party (social) account authentication."
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "django_allauth-65.11.0.tar.gz", hash = "sha256:d08ee0b60a1a54f84720bb749518628c517c9af40b6cfb3bc980206e182745ab"},
+]
+
+[package.dependencies]
+asgiref = ">=3.8.1"
+Django = ">=4.2.16"
+
+[package.extras]
+headless-spec = ["PyYAML (>=6,<7)"]
+idp-oidc = ["oauthlib (>=3.3.0,<4)", "pyjwt[crypto] (>=2.0,<3)"]
+mfa = ["fido2 (>=1.1.2,<3)", "qrcode (>=7.0.0,<9)"]
+openid = ["python3-openid (>=3.0.8,<4)"]
+saml = ["python3-saml (>=1.15.0,<2.0.0)"]
+socialaccount = ["oauthlib (>=3.3.0,<4)", "pyjwt[crypto] (>=2.0,<3)", "requests (>=2.0.0,<3)"]
+steam = ["python3-openid (>=3.0.8,<4)"]
 
 [[package]]
 name = "django-cors-headers"
@@ -3722,4 +3764,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "2a448f608e701ecd9fe24ef07f910b6d27fc88c374d1063c6a3ed86a608b1598"
+content-hash = "a080c325d4a309c873bee2db8b9770946b87fdd121a095847109160b17e42b33"

@@ -1,10 +1,48 @@
-from workspace.models import User
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
+from workspace.models import User
+from .models import (
+    Workspace,
+    WorkspaceRole,
+    WorkspaceMembership,
+    RolePermission,
+    UserPermissionOverride,
+    Subscription,
+)
+
+
+@admin.register(Workspace)
+class WorkspaceAdmin(admin.ModelAdmin):
+    list_display = ("name", "owner", "created_at")
+
+
+@admin.register(WorkspaceRole)
+class WorkspaceRoleAdmin(admin.ModelAdmin):
+    list_display = ("workspace", "name", "is_system")
+
+
+@admin.register(WorkspaceMembership)
+class WorkspaceMembershipAdmin(admin.ModelAdmin):
+    list_display = ("workspace", "user", "role", "is_active")
+
+
+@admin.register(RolePermission)
+class RolePermissionAdmin(admin.ModelAdmin):
+    list_display = ("role", "code", "scope")
+
+
+@admin.register(UserPermissionOverride)
+class UserPermissionOverrideAdmin(admin.ModelAdmin):
+    list_display = ("membership", "code", "scope", "allow")
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("workspace", "plan", "status")
 
 
 # --- UNREGISTER DEFAULT ADMIN CLASSES ---

@@ -21,6 +21,9 @@ urlpatterns = [
     ),
     # Common app URLs
     path("api/common/", include(common_urls)),
+    # Auth endpoints
+    path("api/auth/", include("dj_rest_auth.urls")),
+    path("api/auth/registration/", include("dj_rest_auth.registration.urls")),
     # Workspace app URLs
     path("api/workspace/", include(workspace_urls)),
 ]
