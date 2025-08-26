@@ -2,10 +2,6 @@ import pytest
 from django.urls import reverse
 from .conftest import UserFactory
 from rest_framework import status
-from django.contrib.auth import get_user_model
-
-
-User = get_user_model()
 
 
 @pytest.mark.django_db
@@ -15,8 +11,7 @@ class TestAuthenticationEndpoints:
     def test_login_success(self, api_client):
         """Test successful login with correct credentials."""
         UserFactory(username="testuser", password="testpass123")
-
-        url = reverse("login")
+        url = reverse("rest_login")
         data = {"username": "testuser", "password": "testpass123"}
         response = api_client.post(url, data)
 
@@ -27,8 +22,7 @@ class TestAuthenticationEndpoints:
     def test_login_wrong_password(self, api_client):
         """Test login failure with wrong password."""
         UserFactory(username="testuser", password="testpass123")
-
-        url = reverse("login")
+        url = reverse("rest_login")
         data = {"username": "testuser", "password": "wrongpass"}
         response = api_client.post(url, data)
 
@@ -39,14 +33,14 @@ class TestAuthenticationEndpoints:
         UserFactory(username="testuser", password="testpass123")
 
         # First login to get tokens
-        login_url = reverse("login")
+        login_url = reverse("rest_login")
         login_data = {"username": "testuser", "password": "testpass123"}
         login_response = api_client.post(login_url, login_data)
 
         refresh_token = login_response.data["refresh"]
 
         # Now refresh the token
-        refresh_url = reverse("refresh-token")
+        refresh_url = reverse("token_refresh")
         refresh_data = {"refresh": refresh_token}
         refresh_response = api_client.post(refresh_url, refresh_data)
 

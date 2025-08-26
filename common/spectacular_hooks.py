@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 
 def add_global_workspace_header(
-    result: Dict[str, Any], generator: Any, request: Any
+    result: Dict[str, Any], generator: Any, request: Any, **kwargs: Any
 ) -> Dict[str, Any]:
     """Postprocessing hook to add a reusable X-Workspace-ID header param to all operations."""
     comp = result.setdefault("components", {}).setdefault("parameters", {})

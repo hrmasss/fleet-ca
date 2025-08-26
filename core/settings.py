@@ -333,7 +333,11 @@ REST_AUTH = {
     "SESSION_LOGIN": False,
 }
 TOKEN_MODEL = None
-ACCOUNT_EMAIL_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
+ACCOUNT_SIGNUP_FIELDS = [
+    "username*",
+    "email",
+    "password1*",
+    "password2*",
+]
 ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "none")
-ACCOUNT_USERNAME_REQUIRED = True

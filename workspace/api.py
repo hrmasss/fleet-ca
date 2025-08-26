@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -9,10 +10,6 @@ from rest_framework import serializers
 from workspace.serializers import (
     UserProfileSerializer,
     UserProfileUpdateSerializer,
-)
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView as BaseTokenObtainPairView,
-    TokenRefreshView as BaseTokenRefreshView,
 )
 
 
@@ -94,6 +91,7 @@ def _seed_default_roles(workspace: Workspace) -> None:
 class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = WorkspaceSerializer
+    queryset = Workspace.objects.none()
 
     @extend_schema(
         operation_id="list_workspaces",
@@ -127,19 +125,12 @@ class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateA
         return Response(WorkspaceSerializer(ws).data, status=201)
 
 
-class TokenObtainPairView(BaseTokenObtainPairView):
-    pass
-
-
-class TokenRefreshView(BaseTokenRefreshView):
-    pass
-
-
 class UserProfileView(generics.RetrieveAPIView):
     """Get current user's profile information."""
 
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
+    queryset = get_user_model().objects.none()
 
     def get_object(self):
         return self.request.user
@@ -164,6 +155,7 @@ class UserProfileUpdateView(generics.UpdateAPIView):
     serializer_class = UserProfileUpdateSerializer
     permission_classes = [IsAuthenticated]
     http_method_names = ["patch"]
+    queryset = get_user_model().objects.none()
 
     def get_object(self):
         return self.request.user
@@ -194,6 +186,7 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 
 class MyMembershipsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
+    queryset = WorkspaceMembership.objects.none()
 
     class _MembershipSerializer(serializers.ModelSerializer):
         role = serializers.CharField(source="role.name", allow_null=True)
