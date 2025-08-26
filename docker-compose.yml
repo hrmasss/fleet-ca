@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      SECRET_KEY: local-dev-secret-key
+      DEBUG: "True"
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/common/health/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    command: >-
+      sh -c "
+      apt-get update &&
+      apt-get install -y --no-install-recommends build-essential libpq-dev curl &&
+      rm -rf /var/lib/apt/lists/* &&
+      pip install --no-cache-dir --upgrade pip &&
+      pip install --no-cache-dir poetry &&
+      poetry config virtualenvs.create false &&
+      poetry install --no-interaction --no-ansi &&
+      pip install --no-cache-dir gunicorn &&
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
+      gunicorn --bind 0.0.0.0:8000 --workers 3 core.wsgi:application
+      "
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
