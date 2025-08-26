@@ -165,8 +165,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # --- CORS CONFIGURATION ---
 CORS_ALLOW_CREDENTIALS = True
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+ALLOWED_HOSTS = [h for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h]
+CORS_ALLOWED_ORIGINS = [
+    o for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if o
+]
 
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
