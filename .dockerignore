@@ -1,16 +1,35 @@
-# Python byte-compiled / optimized files
+# Git
+.git
+.gitignore
+
+# Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
 *$py.class
 *.so
 .Python
 
-# Virtual environments
+# Envs
 .env
-.venv
-env/
+.venv/
 venv/
-ENV/
+
+# Django
+staticfiles/
+db.sqlite3
+media/
+logs/
+
+# Docker
+.docker/
+Dockerfile*
+!Dockerfile
+.dockerignore
+docker-compose*.yml
 
 # Distribution / packaging
 dist/
@@ -18,7 +37,6 @@ build/
 *.egg-info/
 
 # Development/IDE files
-.git
 .idea/
 .vscode/
 *.swp
@@ -41,12 +59,8 @@ media/
 node_modules/
 tailwind_theme/static/css/dist/*
 
-# Docker
-Dockerfile
-docker-compose*.yml
-.docker/
-
 # Documentation
 README.md
 docs/
+specs/
 *.md
