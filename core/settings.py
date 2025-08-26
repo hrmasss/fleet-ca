@@ -78,6 +78,8 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django.middleware.timezone.TimeZoneMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -170,13 +172,13 @@ if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
     ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1"]
 
-if not CORS_ALLOWED_ORIGINS:
+if not CORS_ALLOWED_ORIGINS and not DEBUG:
     raise ValueError(
         "CORS_ALLOWED_ORIGINS environment variable is required. "
         "Please set it in your .env file."
     )
 
-if not ALLOWED_HOSTS:
+if not ALLOWED_HOSTS and not DEBUG:
     raise ValueError(
         "ALLOWED_HOSTS environment variable is required. "
         "Please set it in your .env file."
@@ -187,8 +189,19 @@ LANGUAGE_CODE = "en-us"
 USE_I18N = True
 
 # --- TIME ZONE ---
-TIME_ZONE = "Asia/Dhaka"
+# Use UTC by default; apps can localize per-user using pendulum/zoneinfo.
+TIME_ZONE = os.getenv("TIME_ZONE", "UTC")
 USE_TZ = True
+
+# --- PROXY/SECURITY HEADERS ---
+USE_X_FORWARDED_HOST = os.getenv("USE_X_FORWARDED_HOST", "True") == "True"
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False") == "True"
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False") == "True"
+CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "False") == "True"
+
+csrf_trusted = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+CSRF_TRUSTED_ORIGINS = [o for o in csrf_trusted if o]
 
 # --- DEFAULT AUTO FIELD ---
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -38,7 +38,7 @@ RUN adduser -D -u 1000 app && chown -R app:app /app
 USER app
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8000
 
 # Run Gunicorn server
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "3", "core.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "core.wsgi:application"]
