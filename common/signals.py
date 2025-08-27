@@ -20,7 +20,7 @@ SENSITIVE_KEYS = {
 
 def _api_log_path() -> Path:
     base_dir = Path(__file__).resolve().parents[1]
-    logs_dir = base_dir / "logs"
+    logs_dir = base_dir / "_logs"
     logs_dir.mkdir(exist_ok=True)
     api_log = logs_dir / "api.log"
     if not api_log.exists():
@@ -50,7 +50,7 @@ def setup_api_logger_signal() -> bool:
 
     api_logger = logging.getLogger("api_logger")
 
-    # Ensure file handler to logs/api.log
+    # Ensure file handler to _logs/api.log
     file_handler = logging.FileHandler(str(_api_log_path()))
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(

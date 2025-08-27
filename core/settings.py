@@ -164,9 +164,8 @@ AUTH_USER_MODEL = "workspace.User"
 
 # --- AUTHENTICATION BACKENDS ---
 AUTHENTICATION_BACKENDS = (
-    "workspace.services.auth_backends.EmailOrUsernameModelBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 )
 
 # --- PASSWORD VALIDATORS ---
@@ -251,7 +250,7 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 # Logging configuration for both development and production environments
 
 # Ensure the logs directory exists
-log_dir = BASE_DIR / "logs"
+log_dir = BASE_DIR / "_logs"
 log_file_path = log_dir / "django.log"
 os.makedirs(log_dir, exist_ok=True)
 
@@ -357,13 +356,13 @@ REST_AUTH = {
 }
 TOKEN_MODEL = None
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
-# New-style signup fields configuration (allauth >= 65.5)
-ACCOUNT_SIGNUP_FIELDS = {
-    "username": {"required": True},
-    "email": {"required": False},
-    "password1": {"required": True},
-    "password2": {"required": True},
-}
+ACCOUNT_SIGNUP_FIELDS = [
+    "username*",
+    "email*",
+    "password1*",
+    "password2*",
+]
+ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "none")
 REST_AUTH_REGISTER_SERIALIZERS = {
     "REGISTER_SERIALIZER": "workspace.serializers.registration.RegisterSerializer",

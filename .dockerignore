@@ -23,6 +23,7 @@ staticfiles/
 db.sqlite3
 media/
 logs/
+_logs/
 
 # Docker
 .docker/
