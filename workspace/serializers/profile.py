@@ -107,10 +107,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
             org = None
             if getattr(ws, "organization_id", None):
                 o = ws.organization
+                logo_url = None
+                try:
+                    if o.logo:
+                        logo_url = o.logo.url
+                except Exception:
+                    logo_url = None
                 org = {
                     "id": o.id,
                     "name": o.name,
-                    "logo": getattr(o.logo, "url", None),
+                    "logo": logo_url,
                     "brand": o.brand,
                 }
 
