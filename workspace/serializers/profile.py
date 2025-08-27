@@ -10,18 +10,29 @@ class WorkspaceSubscriptionSnapshotSerializer(serializers.Serializer):
     limits = serializers.DictField(child=serializers.IntegerField(), allow_empty=True)
 
 
+class WorkspaceRoleSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    is_system = serializers.BooleanField()
+
+
+class PermissionItemSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    scope = serializers.ChoiceField(choices=["own", "all"])
+
+
 class UserWorkspaceSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
     subscription = WorkspaceSubscriptionSnapshotSerializer(allow_null=True)
+    role = WorkspaceRoleSerializer(allow_null=True)
+    permissions = PermissionItemSerializer(many=True)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer for user profile data (read-only)."""
 
     full_name = serializers.SerializerMethodField()
-    groups = serializers.StringRelatedField(many=True, read_only=True)
-    permissions = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     workspaces = serializers.SerializerMethodField()
 
@@ -32,32 +43,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "full_name",
-            "groups",
-            "permissions",
             "workspaces",
         ]
         read_only_fields = [
             "id",
             "username",
             "email",
-            "groups",
-            "permissions",
             "workspaces",
         ]
 
     def get_full_name(self, obj):
         return obj.get_full_name() or obj.username
 
-    def get_permissions(self, obj):
-        # Return standard Django permission strings (app_label.codename)
-        return sorted(list(obj.get_all_permissions()))
-
     def get_email(self, obj):
         return obj.email or None
 
     @extend_schema_field(UserWorkspaceSerializer(many=True))
     def get_workspaces(self, obj):
-        memberships = obj.memberships.select_related("workspace").all()
+        memberships = obj.memberships.select_related(
+            "workspace", "role"
+        ).prefetch_related("role__permissions", "overrides")
         items = []
         for m in memberships:
             ws = m.workspace
@@ -70,7 +75,41 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     "status": sub.status,
                     "limits": sub.limits,
                 }
-            items.append({"id": ws.id, "name": ws.name, "subscription": snapshot})
+            # Role
+            role = (
+                {"id": m.role.id, "name": m.role.name, "is_system": m.role.is_system}
+                if m.role
+                else None
+            )
+            # Effective permissions: union of role permissions and allow=True overrides, highest scope wins
+            eff: dict[str, str] = {}
+            if m.role:
+                for rp in m.role.permissions.all():
+                    prev = eff.get(rp.code)
+                    if prev != "all":
+                        eff[rp.code] = rp.scope
+            for ov in m.overrides.all():
+                if not getattr(ov, "allow", True):
+                    continue
+                prev = eff.get(ov.code)
+                # Promote to "all" if any source grants ALL
+                if ov.scope == "all" or prev == "all":
+                    eff[ov.code] = "all"
+                else:
+                    eff.setdefault(ov.code, ov.scope)
+            permissions = [
+                {"code": code, "scope": scope} for code, scope in sorted(eff.items())
+            ]
+
+            items.append(
+                {
+                    "id": ws.id,
+                    "name": ws.name,
+                    "subscription": snapshot,
+                    "role": role,
+                    "permissions": permissions,
+                }
+            )
         return UserWorkspaceSerializer(items, many=True).data
 
 
