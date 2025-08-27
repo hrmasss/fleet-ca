@@ -76,18 +76,18 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "drf_spectacular",
     "rest_framework_simplejwt",
-    # Auth
+    "drf_api_logger",
     "django.contrib.sites",
     "allauth",
     "allauth.account",
-    "allauth.socialaccount",  # providers can be added later
+    "allauth.socialaccount",
     "dj_rest_auth",
     "dj_rest_auth.registration",
 ]
 
 # Local applications
 LOCAL_APPS = [
-    "common",
+    "common.apps.CommonConfig",
     "workspace",
 ]
 
@@ -106,6 +106,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware",
 ]
 
 # --- ROOT URL CONFIGURATION ---
@@ -258,6 +259,11 @@ os.makedirs(log_dir, exist_ok=True)
 if not log_file_path.exists():
     log_file_path.touch()
 
+# Ensure api.log exists
+api_log_file_path = log_dir / "api.log"
+if not api_log_file_path.exists():
+    api_log_file_path.touch()
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -362,3 +368,21 @@ ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "none")
 REST_AUTH_REGISTER_SERIALIZERS = {
     "REGISTER_SERIALIZER": "workspace.serializers.registration.RegisterSerializer",
 }
+
+# --- DRF API LOGGER CONFIGURATION ---
+DRF_API_LOGGER_DATABASE = True
+DRF_API_LOGGER_SIGNAL = True
+DRF_API_LOGGER_TIMEDELTA = 360
+DRF_API_LOGGER_EXCLUDE_KEYS = [
+    "password",
+    "confirm_password",
+    "old_password",
+    "new_password",
+    "token",
+    "access",
+    "refresh",
+    "secret",
+    "authorization",
+    "api_key",
+    "client_secret",
+]

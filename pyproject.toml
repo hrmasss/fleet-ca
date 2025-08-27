@@ -32,6 +32,7 @@ django-safedelete = "^1.4.1"
 pendulum = "^3.1.0"
 dj-rest-auth = "^7.0.1"
 django-allauth = "^65.11.0"
+drf-api-logger = "^1.1.20"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
