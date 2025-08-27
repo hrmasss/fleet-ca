@@ -1,4 +1,5 @@
 import os
+import warnings
 import dj_database_url
 from pathlib import Path
 from logging import getLogger
@@ -17,6 +18,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- ENVIRONMENT VARIABLES ---
 # Environment variables from the .env file
 load_dotenv(BASE_DIR / ".env")
+
+# --- WARNING FILTERS ---
+warnings.filterwarnings(
+    "ignore",
+    message=r".*app_settings\.USERNAME_REQUIRED is deprecated.*",
+    category=UserWarning,
+    module=r"dj_rest_auth\.registration\.serializers",
+)
+warnings.filterwarnings(
+    "ignore",
+    message=r".*app_settings\.EMAIL_REQUIRED is deprecated.*",
+    category=UserWarning,
+    module=r"dj_rest_auth\.registration\.serializers",
+)
 
 # --- SECRET KEY ---
 # Secret key from the environment; generate a random one if not set
@@ -333,12 +348,13 @@ REST_AUTH = {
 }
 TOKEN_MODEL = None
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
-ACCOUNT_SIGNUP_FIELDS = [
-    "username*",
-    "email",
-    "password1*",
-    "password2*",
-]
+# New-style signup fields configuration (allauth >= 65.5)
+ACCOUNT_SIGNUP_FIELDS = {
+    "username": {"required": True},
+    "email": {"required": False},
+    "password1": {"required": True},
+    "password2": {"required": True},
+}
 ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "none")
 REST_AUTH_REGISTER_SERIALIZERS = {
     "REGISTER_SERIALIZER": "workspace.serializers.registration.RegisterSerializer",
