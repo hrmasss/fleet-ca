@@ -2,8 +2,12 @@ from workspace.models import Subscription
 from rest_framework.response import Response
 from rest_framework import generics, serializers
 from rest_framework.permissions import IsAuthenticated
-from workspace.services.access_control import WorkspaceHeaderResolverMixin
 from workspace.serializers.subscriptions import SubscriptionSerializer
+from workspace.services.access_control import (
+    WorkspaceHeaderResolverMixin,
+    WorkspaceRBACPermission,
+    has_workspace_permission,
+)
 
 
 class SubscriptionView(WorkspaceHeaderResolverMixin, generics.RetrieveUpdateAPIView):
@@ -13,7 +17,8 @@ class SubscriptionView(WorkspaceHeaderResolverMixin, generics.RetrieveUpdateAPIV
     - PATCH: only workspace owner
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, WorkspaceRBACPermission]
+    resource = "subscription"
     serializer_class = SubscriptionSerializer
 
     def get_object(self):
@@ -33,10 +38,9 @@ class SubscriptionView(WorkspaceHeaderResolverMixin, generics.RetrieveUpdateAPIV
     def patch(self, request, *args, **kwargs):
         sub = self.get_object()
         ws = sub.workspace
-        if request.user != ws.owner:
-            return Response(
-                {"detail": "Only owner can update subscription."}, status=403
-            )
+        # Require subscription.change
+        if not has_workspace_permission(request.user, ws, "subscription", "change"):
+            return Response({"detail": "Insufficient permissions."}, status=403)
         data = {
             k: v for k, v in request.data.items() if k in {"plan", "status", "limits"}
         }

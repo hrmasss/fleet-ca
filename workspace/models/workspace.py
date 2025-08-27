@@ -59,3 +59,24 @@ class WorkspaceMembership(SafeDeleteModel, TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.user} in {self.workspace}"
+
+
+class WorkspaceInvite(SafeDeleteModel, TimeStampedModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.CASCADE, related_name="invites"
+    )
+    email = models.EmailField()
+    role = models.ForeignKey(
+        "workspace.WorkspaceRole",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="invites",
+    )
+    token = models.CharField(max_length=64, unique=True)
+    accepted = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("workspace", "email")

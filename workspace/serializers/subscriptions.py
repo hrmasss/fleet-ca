@@ -10,6 +10,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             "workspace",
             "plan",
             "status",
+            "pending_plan",
             "current_period_end",
             "limits",
             "created_at",

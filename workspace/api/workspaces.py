@@ -3,7 +3,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
-from workspace.services.onboarding import create_workspace_with_defaults
+from workspace.services.onboarding import create_workspace_with_defaults, choose_plan
 from workspace.services.access_control import WorkspaceHeaderResolverMixin
 from workspace.models import Workspace
 from workspace.serializers.workspaces import (
@@ -42,4 +42,7 @@ class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateA
             ws = create_workspace_with_defaults(
                 request.user, data_s.validated_data["name"]
             )
+            desired = data_s.validated_data.get("plan")
+            if desired and desired != "free":
+                choose_plan(ws, desired)
         return Response(WorkspaceSerializer(ws).data, status=201)

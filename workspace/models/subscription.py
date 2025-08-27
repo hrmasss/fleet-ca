@@ -12,6 +12,7 @@ class Subscription(SafeDeleteModel, TimeStampedModel):
         "workspace.Workspace", on_delete=models.CASCADE, related_name="subscription"
     )
     plan = models.CharField(max_length=50, default="free")
+    pending_plan = models.CharField(max_length=50, null=True, blank=True)
     status = models.CharField(max_length=20, default="active")
     current_period_end = models.DateTimeField(null=True, blank=True)
     limits = models.JSONField(default=dict, blank=True)
