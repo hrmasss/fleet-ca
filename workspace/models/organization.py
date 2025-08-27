@@ -14,8 +14,6 @@ class Organization(SafeDeleteModel, TimeStampedModel):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="organizations",
-        null=True,
-        blank=True,
     )
     name = models.CharField(max_length=200)
     logo = OptimizedImageField(upload_to="org_logos/", null=True, blank=True)
