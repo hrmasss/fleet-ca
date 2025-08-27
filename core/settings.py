@@ -345,6 +345,9 @@ REST_AUTH = {
     "USE_JWT": True,
     "TOKEN_MODEL": None,
     "SESSION_LOGIN": False,
+    "JWT_AUTH_COOKIE": "access-token",
+    "JWT_AUTH_REFRESH_COOKIE": "refresh-token",
+    "JWT_AUTH_HTTPONLY": True,
 }
 TOKEN_MODEL = None
 ACCOUNT_LOGIN_METHODS = {"username", "email"}

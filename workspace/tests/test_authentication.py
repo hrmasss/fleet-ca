@@ -25,24 +25,21 @@ class TestAuthenticationEndpoints:
         url = reverse("rest_login")
         data = {"username": "testuser", "password": "wrongpass"}
         response = api_client.post(url, data)
-
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        # dj-rest-auth raises a ValidationError for bad credentials -> 400
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_token_refresh_success(self, api_client):
         """Test successful token refresh."""
         UserFactory(username="testuser", password="testpass123")
 
-        # First login to get tokens
+        # First login; cookies will carry the refresh token (httpOnly)
         login_url = reverse("rest_login")
         login_data = {"username": "testuser", "password": "testpass123"}
-        login_response = api_client.post(login_url, login_data)
+        api_client.post(login_url, login_data)
 
-        refresh_token = login_response.data["refresh"]
-
-        # Now refresh the token
+        # Now refresh the token using cookies (no body needed)
         refresh_url = reverse("token_refresh")
-        refresh_data = {"refresh": refresh_token}
-        refresh_response = api_client.post(refresh_url, refresh_data)
+        refresh_response = api_client.post(refresh_url, {})
 
         assert refresh_response.status_code == status.HTTP_200_OK
         assert "access" in refresh_response.data
