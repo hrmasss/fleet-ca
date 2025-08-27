@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from .models import Workspace, WorkspaceMembership, Subscription
-from .role_defaults import seed_workspace_roles
+from workspace.services.onboarding import create_workspace_with_defaults
 from .rbac import WorkspaceHeaderResolverMixin
 from rest_framework import serializers
 from django.conf import settings
@@ -35,10 +35,6 @@ class WorkspaceCreateSerializer(serializers.ModelSerializer):
     fields = ["name"]
 
 
-def _seed_default_roles(workspace: Workspace) -> None:
-    seed_workspace_roles(workspace)
-
-
 class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = WorkspaceSerializer
@@ -66,19 +62,8 @@ class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateA
         data_s = WorkspaceCreateSerializer(data=request.data)
         data_s.is_valid(raise_exception=True)
         with transaction.atomic():
-            ws = Workspace.objects.create(owner=request.user, **data_s.validated_data)
-            _seed_default_roles(ws)
-            # Assign membership as Owner
-            owner_role = ws.roles.get(name="Owner")
-            WorkspaceMembership.objects.create(
-                workspace=ws, user=request.user, role=owner_role
-            )
-            # Auto-create a subscription for onboarding (dev-friendly)
-            Subscription.objects.create(
-                workspace=ws,
-                plan="free",
-                status="active" if settings.DEBUG else "trial",
-                limits={},
+            ws = create_workspace_with_defaults(
+                request.user, data_s.validated_data["name"]
             )
         return Response(WorkspaceSerializer(ws).data, status=201)
 

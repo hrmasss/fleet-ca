@@ -1,8 +1,8 @@
-from typing import Dict, Iterable, Tuple
-from .models import Workspace, WorkspaceRole, RolePermission, PermissionScope
+from typing import Dict, Iterable
+from workspace.models import Workspace, WorkspaceRole, RolePermission, PermissionScope
 
 
-DEFAULT_ROLE_DEFS: Dict[str, Iterable[Tuple[str, PermissionScope]]] = {
+DEFAULT_ROLE_DEFS: Dict[str, Iterable[tuple[str, PermissionScope]]] = {
     "Owner": [
         ("content.view", PermissionScope.ALL),
         ("content.change", PermissionScope.ALL),
@@ -34,16 +34,10 @@ DEFAULT_ROLE_DEFS: Dict[str, Iterable[Tuple[str, PermissionScope]]] = {
 }
 
 
-def seed_workspace_roles(
-    workspace: Workspace,
-    role_defs: Dict[str, Iterable[Tuple[str, PermissionScope]]] | None = None,
-) -> None:
-    """Seed workspace with default roles and permissions from a simple mapping."""
+def seed_workspace_roles(workspace: Workspace, role_defs: Dict[str, Iterable[tuple[str, PermissionScope]]] | None = None) -> None:
     defs = role_defs or DEFAULT_ROLE_DEFS
     for role_name, perms in defs.items():
-        role = WorkspaceRole.objects.create(
-            workspace=workspace, name=role_name, is_system=True
-        )
-        RolePermission.objects.bulk_create(
-            [RolePermission(role=role, code=code, scope=scope) for code, scope in perms]
-        )
+        role = WorkspaceRole.objects.create(workspace=workspace, name=role_name, is_system=True)
+        RolePermission.objects.bulk_create([
+            RolePermission(role=role, code=code, scope=scope) for code, scope in perms
+        ])
