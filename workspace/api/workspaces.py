@@ -3,7 +3,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
-from workspace.services.onboarding import create_workspace_with_defaults, choose_plan
+from workspace.services.onboarding import choose_plan
 from workspace.services.access_control import WorkspaceHeaderResolverMixin
 from workspace.models import Workspace
 from workspace.serializers.workspaces import (
@@ -36,12 +36,12 @@ class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateA
         responses={201: WorkspaceSerializer},
     )
     def post(self, request, *args, **kwargs):
-        data_s = WorkspaceCreateSerializer(data=request.data)
+        data_s = WorkspaceCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         data_s.is_valid(raise_exception=True)
         with transaction.atomic():
-            ws = create_workspace_with_defaults(
-                request.user, data_s.validated_data["name"]
-            )
+            ws = data_s.save()
             desired = data_s.validated_data.get("plan")
             if desired and desired != "free":
                 choose_plan(ws, desired)

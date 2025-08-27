@@ -1,12 +1,14 @@
 from django.db import transaction
-from workspace.models import Workspace, WorkspaceMembership, Subscription
+from workspace.models import Workspace, WorkspaceMembership, Subscription, Organization
 from workspace.config.plans import limits_for
 from .roles import seed_workspace_roles
 
 
 @transaction.atomic
-def create_workspace_with_defaults(owner, name: str) -> Workspace:
-    ws = Workspace.objects.create(owner=owner, name=name)
+def create_workspace_with_defaults(
+    owner, name: str, organization: Organization | None = None
+) -> Workspace:
+    ws = Workspace.objects.create(owner=owner, name=name, organization=organization)
     seed_workspace_roles(ws)
     owner_role = ws.roles.get(name="Owner")
     WorkspaceMembership.objects.create(workspace=ws, user=owner, role=owner_role)

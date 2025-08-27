@@ -27,6 +27,7 @@ class UserWorkspaceSerializer(serializers.Serializer):
     subscription = WorkspaceSubscriptionSnapshotSerializer(allow_null=True)
     role = WorkspaceRoleSerializer(allow_null=True)
     permissions = PermissionItemSerializer(many=True)
+    organization = serializers.DictField(allow_null=True)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -61,7 +62,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
     @extend_schema_field(UserWorkspaceSerializer(many=True))
     def get_workspaces(self, obj):
         memberships = obj.memberships.select_related(
-            "workspace", "role"
+            "workspace",
+            "role",
+            "workspace__organization",
         ).prefetch_related("role__permissions", "overrides")
         items = []
         for m in memberships:
@@ -101,6 +104,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 {"code": code, "scope": scope} for code, scope in sorted(eff.items())
             ]
 
+            org = None
+            if getattr(ws, "organization_id", None):
+                o = ws.organization
+                org = {
+                    "id": o.id,
+                    "name": o.name,
+                    "logo": getattr(o.logo, "url", None),
+                    "brand": o.brand,
+                }
+
             items.append(
                 {
                     "id": ws.id,
@@ -108,6 +121,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     "subscription": snapshot,
                     "role": role,
                     "permissions": permissions,
+                    "organization": org,
                 }
             )
         return UserWorkspaceSerializer(items, many=True).data

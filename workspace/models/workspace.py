@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from common.models import TimeStampedModel
+from workspace.models.organization import Organization
 from safedelete.models import SafeDeleteModel
 from safedelete import SOFT_DELETE_CASCADE
 from django.conf import settings
@@ -14,6 +15,13 @@ class Workspace(SafeDeleteModel, TimeStampedModel):
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="owned_workspaces",
+    )
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="workspaces",
     )
 
     def __str__(self) -> str:
