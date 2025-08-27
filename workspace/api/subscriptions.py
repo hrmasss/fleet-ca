@@ -1,5 +1,5 @@
 from workspace.models import Subscription
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.response import Response
 from rest_framework import generics, serializers
 from rest_framework.permissions import IsAuthenticated
@@ -37,6 +37,17 @@ class SubscriptionView(WorkspaceHeaderResolverMixin, generics.RetrieveUpdateAPIV
             )
         return sub
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="X-Workspace-ID",
+                type={"type": "string", "format": "uuid"},
+                required=True,
+                location=OpenApiParameter.HEADER,
+                description="Active workspace ID.",
+            )
+        ]
+    )
     def patch(self, request, *args, **kwargs):
         sub = self.get_object()
         ws = sub.workspace
@@ -50,7 +61,19 @@ class SubscriptionView(WorkspaceHeaderResolverMixin, generics.RetrieveUpdateAPIV
         serializer.save()
         return Response(serializer.data)
 
-    @extend_schema(operation_id="confirm_subscription", summary="Confirm pending plan")
+    @extend_schema(
+        operation_id="confirm_subscription",
+        summary="Confirm pending plan",
+        parameters=[
+            OpenApiParameter(
+                name="X-Workspace-ID",
+                type={"type": "string", "format": "uuid"},
+                required=True,
+                location=OpenApiParameter.HEADER,
+                description="Active workspace ID.",
+            )
+        ],
+    )
     def post(self, request, *args, **kwargs):
         sub = self.get_object()
         ws = sub.workspace

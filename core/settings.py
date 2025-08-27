@@ -332,9 +332,6 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": "/api",
-    "POSTPROCESSING_HOOKS": [
-        "common.spectacular_hooks.add_global_workspace_header",
-    ],
     "SWAGGER_UI_SETTINGS": {
         "filter": True,
         "docExpansion": "none",

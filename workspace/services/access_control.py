@@ -2,6 +2,7 @@ from typing import Optional
 from dataclasses import dataclass
 from django.http import HttpRequest
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.exceptions import ParseError
 from workspace.models import Workspace, WorkspaceMembership, PermissionScope
 
 
@@ -93,16 +94,21 @@ class WorkspaceRBACPermission(BasePermission):
             return False
         if getattr(view, "public", False):
             return True
+
+        resource = getattr(view, "resource", None)
+        # If the view is not tenant-scoped, don't require a workspace at all
+        if not resource:
+            return True
+
+        # Tenant-scoped: require a resolvable workspace
         workspace = getattr(request, "workspace", None)
         if workspace is None and hasattr(view, "get_workspace"):
             workspace = view.get_workspace(request)
             setattr(request, "workspace", workspace)
         if workspace is None:
-            return False
-        resource = getattr(view, "resource", None)
-        if not resource:
-            # If view doesn't declare resource, only membership is required
-            return _membership_for(request.user, workspace) is not None
+            # Return a friendly 400 error when the workspace header is missing
+            raise ParseError("Missing X-Workspace-ID header.")
+
         action = getattr(view, "action_code", None) or resolve_action(request.method)
         return has_workspace_permission(request.user, workspace, resource, action)
 

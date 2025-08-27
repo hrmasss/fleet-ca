@@ -1,12 +1,12 @@
 from django.db import transaction
 from rest_framework import generics
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema
+from workspace.config.plans import limits_for
 from rest_framework.permissions import IsAuthenticated
 from workspace.services.onboarding import choose_plan
 from workspace.services.roles import seed_workspace_roles
 from workspace.models import WorkspaceMembership, Subscription
-from workspace.config.plans import limits_for
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from workspace.services.access_control import WorkspaceHeaderResolverMixin
 from workspace.models import Workspace
 from workspace.serializers.workspaces import (
@@ -71,21 +71,25 @@ class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateA
                 choose_plan(ws, desired)
         return Response(WorkspaceSerializer(ws).data, status=201)
 
-
-class WorkspaceDetailUpdateView(WorkspaceHeaderResolverMixin, generics.UpdateAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = WorkspaceSerializer
-    http_method_names = ["patch"]
-    queryset = Workspace.objects.all()
-
     @extend_schema(
         operation_id="update_workspace",
-        summary="Update a workspace (owner-only)",
+        summary="Update the active workspace (owner-only)",
+        parameters=[
+            OpenApiParameter(
+                name="X-Workspace-ID",
+                type={"type": "string", "format": "uuid"},
+                required=True,
+                location=OpenApiParameter.HEADER,
+                description="Active workspace ID.",
+            )
+        ],
         request=WorkspaceSerializer,
         responses={200: WorkspaceSerializer},
     )
     def patch(self, request, *args, **kwargs):
-        ws = self.get_workspace(request) or self.get_object()
+        ws = self.get_workspace(request)
+        if not ws:
+            return Response({"detail": "Workspace not found."}, status=404)
         if ws.owner_id != request.user.id:
             return Response({"detail": "Only owner can update."}, status=403)
         # Only allow name and organization fields
