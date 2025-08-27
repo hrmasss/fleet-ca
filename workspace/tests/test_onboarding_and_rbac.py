@@ -51,6 +51,9 @@ def test_user_can_create_workspace_with_org(authenticated_client, user):
     ws2 = Workspace.objects.get(id=r2.data["id"])
     assert ws2.organization_id == ws.organization_id
 
+    # Creating another workspace with the same name should fail for the same owner
+    dup = authenticated_client.post(url, {"name": "Acme Workspace"}, format="json")
+    assert dup.status_code == status.HTTP_400_BAD_REQUEST
 
 @pytest.mark.django_db
 def test_multiple_workspaces_can_have_different_orgs(authenticated_client):
@@ -70,6 +73,57 @@ def test_multiple_workspaces_can_have_different_orgs(authenticated_client):
     ws1 = Workspace.objects.get(id=r1.data["id"])
     ws2 = Workspace.objects.get(id=r2.data["id"])
     assert ws1.organization_id != ws2.organization_id
+
+
+@pytest.mark.django_db
+def test_org_update_permissions_and_endpoint(api_client):
+    # Owner creates workspace and org
+    owner = UserFactory(username="owner2", password="pass12345")
+    api_client.force_authenticate(user=owner)
+    ws_resp = api_client.post(
+        reverse("workspaces"),
+        {"name": "Brand WS", "organization": {"name": "BrandCo", "brand": {"primary": "#000"}}},
+        format="json",
+    )
+    assert ws_resp.status_code == 201
+    ws_id = ws_resp.data["id"]
+
+    # Owner can update org via organization endpoint
+    upd = api_client.patch(
+        reverse("organization"),
+        {"brand": {"primary": "#111"}},
+        HTTP_X_WORKSPACE_ID=str(ws_id),
+        format="json",
+    )
+    assert upd.status_code == 200
+    assert upd.data["brand"]["primary"] == "#111"
+
+    # Invite a member (who should have ORGANIZATION_VIEW but not CHANGE unless Editor)
+    invite = api_client.post(
+        reverse("invite-create"),
+        {"email": "ed@example.com"},
+        HTTP_X_WORKSPACE_ID=str(ws_id),
+        format="json",
+    )
+    assert invite.status_code == 201
+    token = invite.data["token"]
+    editor = UserFactory(username="ed", password="pass12345")
+    api_client.force_authenticate(user=editor)
+    acc = api_client.post(reverse("invite-accept"), {"token": token}, format="json")
+    assert acc.status_code == 200
+
+    # Member can view org
+    view = api_client.get(reverse("organization"), HTTP_X_WORKSPACE_ID=str(ws_id))
+    assert view.status_code == 200
+
+    # Member cannot change org (default Member role has ORGANIZATION_VIEW only)
+    deny = api_client.patch(
+        reverse("organization"),
+        {"brand": {"primary": "#222"}},
+        HTTP_X_WORKSPACE_ID=str(ws_id),
+        format="json",
+    )
+    assert deny.status_code == 403
 
 
 @pytest.mark.django_db

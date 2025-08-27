@@ -6,7 +6,14 @@ from workspace.config.plans import PLAN_CHOICES
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
-        fields = ["id", "name", "logo", "brand", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "name",
+            "logo",
+            "brand",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
@@ -45,11 +52,21 @@ class WorkspaceCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Provide either organization_id or organization, not both."
             )
+        # Enforce unique workspace name per owner (creator)
+        request = self.context.get("request")
+        name = attrs.get("name")
+        if request and name:
+            exists = Workspace.objects.filter(owner=request.user, name=name).exists()
+            if exists:
+                raise serializers.ValidationError(
+                    {"name": "You already have a workspace with this name."}
+                )
         return attrs
 
     def create(self, validated_data):
         org_id = validated_data.pop("organization_id", None)
         org_data = validated_data.pop("organization", None)
+        validated_data.pop("plan", None)
         request = self.context.get("request")
         org = None
         if org_id:
@@ -58,7 +75,15 @@ class WorkspaceCreateSerializer(serializers.ModelSerializer):
             except Organization.DoesNotExist:
                 raise serializers.ValidationError("Organization not found.")
         elif org_data:
-            org = Organization.objects.create(**org_data)
+            # Assign owner to enforce per-user uniqueness; reuse existing if same name
+            owner = request.user if request else None
+            if owner:
+                existing = Organization.objects.filter(
+                    owner=owner, name=org_data.get("name")
+                ).first()
+                org = existing or Organization.objects.create(owner=owner, **org_data)
+            else:
+                org = Organization.objects.create(**org_data)
         ws = Workspace.objects.create(
             owner=request.user if request else None,
             organization=org,

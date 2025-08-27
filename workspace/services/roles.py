@@ -14,13 +14,18 @@ DEFAULT_ROLE_DEFS: Dict[str, Iterable[tuple[PC, PermissionScope]]] = {
         (PC.SUBSCRIPTION_CHANGE, PermissionScope.ALL),
         (PC.INVITES_VIEW, PermissionScope.ALL),
         (PC.INVITES_CHANGE, PermissionScope.ALL),
+        (PC.ORGANIZATION_VIEW, PermissionScope.ALL),
+        (PC.ORGANIZATION_CHANGE, PermissionScope.ALL),
     ],
     "Editor": [
         (PC.INVITES_VIEW, PermissionScope.ALL),
         (PC.INVITES_CHANGE, PermissionScope.ALL),
+        (PC.ORGANIZATION_VIEW, PermissionScope.ALL),
+        (PC.ORGANIZATION_CHANGE, PermissionScope.ALL),
     ],
     "Member": [
         (PC.INVITES_VIEW, PermissionScope.ALL),
+        (PC.ORGANIZATION_VIEW, PermissionScope.ALL),
     ],
 }
 

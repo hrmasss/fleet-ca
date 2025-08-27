@@ -27,6 +27,13 @@ class Workspace(SafeDeleteModel, TimeStampedModel):
     def __str__(self) -> str:
         return self.name
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["owner", "name"], name="uniq_workspace_name_per_owner"
+            )
+        ]
+
 
 class WorkspaceRole(SafeDeleteModel, TimeStampedModel):
     _safedelete_policy = SOFT_DELETE_CASCADE

@@ -11,4 +11,6 @@ PERMS: Dict[PC, PermissionScope] = {
     PC.SUBSCRIPTION_CHANGE: PermissionScope.ALL,
     PC.INVITES_VIEW: PermissionScope.ALL,
     PC.INVITES_CHANGE: PermissionScope.ALL,
+    PC.ORGANIZATION_VIEW: PermissionScope.ALL,
+    PC.ORGANIZATION_CHANGE: PermissionScope.ALL,
 }

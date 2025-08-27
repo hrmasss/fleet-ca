@@ -12,6 +12,8 @@ HUMAN_LABELS: Dict[PC, str] = {
     PC.SUBSCRIPTION_CHANGE: "Manage subscription",
     PC.INVITES_VIEW: "View invites",
     PC.INVITES_CHANGE: "Manage invites",
+    PC.ORGANIZATION_VIEW: "View organization",
+    PC.ORGANIZATION_CHANGE: "Manage organization",
 }
 
 

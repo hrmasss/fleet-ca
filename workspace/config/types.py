@@ -4,6 +4,7 @@ from typing import TypedDict
 
 class Resource(str, Enum):
     WORKSPACE_USERS = "workspace_users"
+    ORGANIZATION = "organization"
     SUBSCRIPTION = "subscription"
     INVITES = "invites"
     ROLES = "roles"
@@ -26,6 +27,9 @@ class PermissionCode(str, Enum):
 
     INVITES_VIEW = f"{Resource.INVITES.value}.{Action.VIEW.value}"
     INVITES_CHANGE = f"{Resource.INVITES.value}.{Action.CHANGE.value}"
+
+    ORGANIZATION_VIEW = f"{Resource.ORGANIZATION.value}.{Action.VIEW.value}"
+    ORGANIZATION_CHANGE = f"{Resource.ORGANIZATION.value}.{Action.CHANGE.value}"
 
 
 class WorkspacePlanLimits(TypedDict):

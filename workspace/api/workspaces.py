@@ -70,3 +70,41 @@ class WorkspaceListCreateView(WorkspaceHeaderResolverMixin, generics.ListCreateA
             if desired and desired != "free":
                 choose_plan(ws, desired)
         return Response(WorkspaceSerializer(ws).data, status=201)
+
+
+class WorkspaceDetailUpdateView(WorkspaceHeaderResolverMixin, generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = WorkspaceSerializer
+    http_method_names = ["patch"]
+    queryset = Workspace.objects.all()
+
+    @extend_schema(
+        operation_id="update_workspace",
+        summary="Update a workspace (owner-only)",
+        request=WorkspaceSerializer,
+        responses={200: WorkspaceSerializer},
+    )
+    def patch(self, request, *args, **kwargs):
+        ws = self.get_workspace(request) or self.get_object()
+        if ws.owner_id != request.user.id:
+            return Response({"detail": "Only owner can update."}, status=403)
+        # Only allow name and organization fields
+        data = {k: v for k, v in request.data.items() if k in {"name", "organization"}}
+        # Handle partial organization update
+        org_data = data.get("organization")
+        if org_data is not None:
+            if ws.organization is None:
+                ws.organization = None
+            else:
+                for field in ["name", "brand"]:
+                    if field in org_data:
+                        setattr(ws.organization, field, org_data[field])
+                if "logo" in org_data:
+                    ws.organization.logo = org_data["logo"]
+                ws.organization.owner = ws.owner  # ensure ownership
+                ws.organization.save()
+            data.pop("organization", None)
+        serializer = WorkspaceSerializer(ws, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
