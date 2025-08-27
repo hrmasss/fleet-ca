@@ -1,11 +1,8 @@
 from django.urls import path
-from workspace.api import (
-    UserProfileView,
-    UserProfileUpdateView,
-    WorkspaceListCreateView,
-    MyMembershipsView,
-    SubscriptionView,
-)
+from workspace.api.subscriptions import SubscriptionView
+from workspace.api.profile import UserProfileView, UserProfileUpdateView
+from workspace.api.workspaces import WorkspaceListCreateView
+from workspace.api.memberships import MyMembershipsView
 
 urlpatterns = [
     path("profile/", UserProfileView.as_view(), name="user-profile"),

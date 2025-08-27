@@ -1,8 +1,8 @@
 from typing import Optional
-from .models import Workspace, WorkspaceMembership, PermissionScope
-from rest_framework.permissions import BasePermission, SAFE_METHODS
-from django.http import HttpRequest
 from dataclasses import dataclass
+from django.http import HttpRequest
+from rest_framework.permissions import BasePermission, SAFE_METHODS
+from workspace.models import Workspace, WorkspaceMembership, PermissionScope
 
 
 def permission_code(resource: str, action: str) -> str:
@@ -63,7 +63,7 @@ def has_workspace_permission(
 
 
 class WorkspaceHeaderResolverMixin:
-    """Mixin to resolve workspace from header or url kwarg `workspace_id`."""
+    """Resolve workspace from header or url kwarg `workspace_id`."""
 
     workspace_kwarg = "workspace_id"
 
@@ -82,7 +82,7 @@ class WorkspaceHeaderResolverMixin:
 
 
 class WorkspaceRBACPermission(BasePermission):
-    """DRF permission that enforces workspace membership and resource/action checks.
+    """DRF permission enforcing workspace membership and resource/action checks.
 
     Set view attributes: `resource = "content"` and optionally `action` (for custom actions).
     Otherwise action is inferred from the method.

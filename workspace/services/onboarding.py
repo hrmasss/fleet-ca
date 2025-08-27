@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.conf import settings
 from workspace.models import Workspace, WorkspaceMembership, Subscription
 from .roles import seed_workspace_roles
 
@@ -13,7 +12,7 @@ def create_workspace_with_defaults(owner, name: str) -> Workspace:
     Subscription.objects.create(
         workspace=ws,
         plan="free",
-        status="active" if settings.DEBUG else "trial",
+        status="trial",
         limits={},
     )
     return ws

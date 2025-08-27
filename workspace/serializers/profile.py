@@ -1,6 +1,6 @@
-from workspace.models import User
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
+from workspace.models import User
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -77,30 +77,3 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["first_name", "last_name"]
-
-
-class RegisterSerializer(serializers.Serializer):
-    """Register a new user and return minimal info.
-
-    Also supports passing an optional workspace_name; if omitted, a default will be used.
-    """
-
-    username = serializers.CharField(max_length=150)
-    password = serializers.CharField(write_only=True, min_length=8)
-    email = serializers.EmailField(required=False, allow_blank=True)
-    workspace_name = serializers.CharField(
-        required=False, allow_blank=True, max_length=200
-    )
-
-    def validate_username(self, value: str) -> str:
-        if User.objects.filter(username__iexact=value).exists():
-            raise serializers.ValidationError("Username already taken")
-        return value
-
-    def validate_email(self, value: str) -> str:
-        if value and User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("Email already registered")
-        return value
-
-    def create(self, validated_data):
-        return validated_data

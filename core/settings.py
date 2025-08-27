@@ -148,8 +148,7 @@ AUTH_USER_MODEL = "workspace.User"
 
 # --- AUTHENTICATION BACKENDS ---
 AUTHENTICATION_BACKENDS = (
-    "workspace.backends.EmailOrUsernameModelBackend",
-    # allauth needs its backend to manage email/username auth & social
+    "workspace.services.auth_backends.EmailOrUsernameModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 )

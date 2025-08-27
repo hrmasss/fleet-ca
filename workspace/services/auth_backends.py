@@ -3,10 +3,9 @@ from workspace.models import User
 from django.db.models import Q
 
 
-# --- AUTHENTICATION BACKENDS ---
-
-
 class EmailOrUsernameModelBackend(ModelBackend):
+    """Authenticate with either username or email plus password."""
+
     def authenticate(self, request, username=None, password=None, **kwargs):
         if not username or not password:
             return None
