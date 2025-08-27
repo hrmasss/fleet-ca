@@ -79,3 +79,27 @@ class InviteAcceptView(generics.GenericAPIView):
         invite.accepted = True
         invite.save(update_fields=["accepted"])
         return Response({"detail": "Joined"}, status=200)
+
+    @extend_schema(
+        operation_id="accept_invite_get",
+        summary="Accept invite by visiting link",
+        responses={200: None},
+    )
+    def get(self, request, *args, **kwargs):
+        token = request.query_params.get("token")
+        if not token:
+            return Response({"detail": "Missing token"}, status=400)
+        try:
+            invite = WorkspaceInvite.objects.select_related("workspace", "role").get(
+                token=token, accepted=False
+            )
+        except WorkspaceInvite.DoesNotExist:
+            return Response({"detail": "Invalid token"}, status=400)
+        ws = invite.workspace
+        role = invite.role or ws.roles.filter(name="Member").first()
+        WorkspaceMembership.objects.get_or_create(
+            workspace=ws, user=request.user, defaults={"role": role}
+        )
+        invite.accepted = True
+        invite.save(update_fields=["accepted"])
+        return Response({"detail": "Joined"}, status=200)
