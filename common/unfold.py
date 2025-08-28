@@ -149,6 +149,7 @@ UNFOLD_CONFIG = {
             "models": [
                 "drf_api_logger.apilogsmodel",
                 "sites.site",
+                "constance.config",
             ],
             "items": [
                 {
@@ -161,7 +162,12 @@ UNFOLD_CONFIG = {
                 {
                     "title": "Sites",
                     "link": reverse_lazy("admin:sites_site_changelist"),
-                    "permission": lambda r: r.user.has_perm("sites.view_site"),
+                    "permission": lambda r: r.user.is_staff,
+                },
+                {
+                    "title": "Settings",
+                    "link": reverse_lazy("admin:constance_config_changelist"),
+                    "permission": lambda r: r.user.is_staff,
                 },
             ],
         },
