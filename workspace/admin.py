@@ -2,7 +2,6 @@ from django.contrib import admin
 from unfold.admin import ModelAdmin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from workspace.models import User
 from .models import (
@@ -12,6 +11,7 @@ from .models import (
     RolePermission,
     UserPermissionOverride,
     Subscription,
+    Organization,
 )
 
 
@@ -52,7 +52,6 @@ admin.site.unregister(Group)
 
 
 # --- REGISTER ADMIN CLASSES ---
-
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
@@ -109,7 +108,6 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
         ),
     )
 
-
-@admin.register(Group)
-class GroupAdmin(BaseGroupAdmin, ModelAdmin):
-    pass
+@admin.register(Organization)
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ("name", "owner", "created_at")

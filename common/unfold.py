@@ -1,4 +1,5 @@
 from django.templatetags.static import static
+from django.urls import reverse_lazy
 
 UNFOLD_CONFIG = {
     "SITE_TITLE": "Oppora Marketing",
@@ -44,4 +45,159 @@ UNFOLD_CONFIG = {
             "important-dark": "var(--color-base-50)",
         },
     },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "collapsible": False,
+                "items": [
+                    {
+                        "title": "Workspace",
+                        "icon": "workspaces",
+                        "link": reverse_lazy("admin:workspace_workspace_changelist"),
+                        "permission": lambda r: r.user.has_perm(
+                            "workspace.view_workspace"
+                        ),
+                    },
+                    {
+                        "title": "System",
+                        "icon": "settings",
+                        "link": reverse_lazy("admin:sites_site_changelist"),
+                        "permission": lambda r: r.user.has_perm("sites.view_site"),
+                    },
+                    {
+                        "title": "Auth",
+                        "icon": "lock",
+                        "link": reverse_lazy("admin:workspace_user_changelist"),
+                        "permission": lambda r: r.user.has_perm("workspace.view_user"),
+                    },
+                ],
+            }
+        ],
+    },
+    "TABS": [
+        {
+            "models": [
+                "workspace.workspace",
+                "workspace.workspacerole",
+                "workspace.workspacemembership",
+                "workspace.subscription",
+                "workspace.organization",
+                "workspace.rolepermission",
+                "workspace.userpermissionoverride",
+            ],
+            "items": [
+                {
+                    "title": "Workspaces",
+                    "link": reverse_lazy("admin:workspace_workspace_changelist"),
+                    "permission": lambda r: r.user.has_perm("workspace.view_workspace"),
+                },
+                {
+                    "title": "Roles",
+                    "link": reverse_lazy("admin:workspace_workspacerole_changelist"),
+                    "permission": lambda r: r.user.has_perm(
+                        "workspace.view_workspacerole"
+                    ),
+                },
+                {
+                    "title": "Members",
+                    "link": reverse_lazy(
+                        "admin:workspace_workspacemembership_changelist"
+                    ),
+                    "permission": lambda r: r.user.has_perm(
+                        "workspace.view_workspacemembership"
+                    ),
+                },
+                {
+                    "title": "Subscriptions",
+                    "link": reverse_lazy("admin:workspace_subscription_changelist"),
+                    "permission": lambda r: r.user.has_perm(
+                        "workspace.view_subscription"
+                    ),
+                },
+                {
+                    "title": "Organizations",
+                    "link": reverse_lazy("admin:workspace_organization_changelist"),
+                    "permission": lambda r: r.user.has_perm(
+                        "workspace.view_organization"
+                    ),
+                },
+                {
+                    "title": "Access Rules",
+                    "link": reverse_lazy("admin:workspace_rolepermission_changelist"),
+                    "permission": lambda r: r.user.has_perm(
+                        "workspace.view_rolepermission"
+                    ),
+                },
+                {
+                    "title": "User Overrides",
+                    "link": reverse_lazy(
+                        "admin:workspace_userpermissionoverride_changelist"
+                    ),
+                    "permission": lambda r: r.user.has_perm(
+                        "workspace.view_userpermissionoverride"
+                    ),
+                },
+            ],
+        },
+        {
+            "models": [
+                "sites.site",
+                "drf_api_logger.apilogsmodel",
+            ],
+            "items": [
+                {
+                    "title": "Sites",
+                    "link": reverse_lazy("admin:sites_site_changelist"),
+                    "permission": lambda r: r.user.has_perm("sites.view_site"),
+                },
+                {
+                    "title": "API Logs",
+                    "link": reverse_lazy(
+                        "admin:drf_api_logger_apilogsmodel_changelist"
+                    ),
+                    "permission": lambda r: r.user.is_staff,
+                },
+            ],
+        },
+        {
+            "models": [
+                "workspace.user",
+                "account.emailaddress",
+                "socialaccount.socialaccount",
+                "socialaccount.socialapp",
+                "socialaccount.socialtoken",
+            ],
+            "items": [
+                {
+                    "title": "Users",
+                    "link": reverse_lazy("admin:workspace_user_changelist"),
+                    "permission": lambda r: r.user.has_perm("workspace.view_user"),
+                },
+                {
+                    "title": "Email addresses",
+                    "link": reverse_lazy("admin:account_emailaddress_changelist"),
+                    "permission": lambda r: r.user.is_staff,
+                },
+                {
+                    "title": "Social accounts",
+                    "link": reverse_lazy(
+                        "admin:socialaccount_socialaccount_changelist"
+                    ),
+                    "permission": lambda r: r.user.is_staff,
+                },
+                {
+                    "title": "Social apps",
+                    "link": reverse_lazy("admin:socialaccount_socialapp_changelist"),
+                    "permission": lambda r: r.user.is_staff,
+                },
+                {
+                    "title": "Social tokens",
+                    "link": reverse_lazy("admin:socialaccount_socialtoken_changelist"),
+                    "permission": lambda r: r.user.is_staff,
+                },
+            ],
+        },
+    ],
 }
