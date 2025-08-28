@@ -53,6 +53,12 @@ UNFOLD_CONFIG = {
                 "collapsible": False,
                 "items": [
                     {
+                        "title": "Auth",
+                        "icon": "lock",
+                        "link": reverse_lazy("admin:workspace_user_changelist"),
+                        "permission": lambda r: r.user.has_perm("workspace.view_user"),
+                    },
+                    {
                         "title": "Workspace",
                         "icon": "workspaces",
                         "link": reverse_lazy("admin:workspace_workspace_changelist"),
@@ -63,14 +69,12 @@ UNFOLD_CONFIG = {
                     {
                         "title": "System",
                         "icon": "settings",
-                        "link": reverse_lazy("admin:sites_site_changelist"),
-                        "permission": lambda r: r.user.has_perm("sites.view_site"),
-                    },
-                    {
-                        "title": "Auth",
-                        "icon": "lock",
-                        "link": reverse_lazy("admin:workspace_user_changelist"),
-                        "permission": lambda r: r.user.has_perm("workspace.view_user"),
+                        "link": reverse_lazy(
+                            "admin:drf_api_logger_apilogsmodel_changelist"
+                        ),
+                        "permission": lambda r: r.user.has_perm(
+                            "drf_api_logger.view_apilogsmodel"
+                        ),
                     },
                 ],
             }
@@ -143,21 +147,21 @@ UNFOLD_CONFIG = {
         },
         {
             "models": [
-                "sites.site",
                 "drf_api_logger.apilogsmodel",
+                "sites.site",
             ],
             "items": [
-                {
-                    "title": "Sites",
-                    "link": reverse_lazy("admin:sites_site_changelist"),
-                    "permission": lambda r: r.user.has_perm("sites.view_site"),
-                },
                 {
                     "title": "API Logs",
                     "link": reverse_lazy(
                         "admin:drf_api_logger_apilogsmodel_changelist"
                     ),
                     "permission": lambda r: r.user.is_staff,
+                },
+                {
+                    "title": "Sites",
+                    "link": reverse_lazy("admin:sites_site_changelist"),
+                    "permission": lambda r: r.user.has_perm("sites.view_site"),
                 },
             ],
         },

@@ -32,13 +32,21 @@ class TabularInline(BaseInlineAdmin, BaseTabularInline):
 
 
 class BaseModelAdmin(ModelAdmin):
-    readonly_fields = ["created_at", "updated_at"]
+    readonly_fields: tuple = ()
     formfield_overrides = {
         models.CharField: {"widget": UnfoldAdminTextInputWidget},
         models.TextField: {"widget": UnfoldAdminTextInputWidget},
         models.ForeignKey: {"widget": UnfoldAdminSelectWidget},
         models.FileField: {"widget": UnfoldAdminFileFieldWidget},
     }
+
+    def get_readonly_fields(self, request, obj=None):
+        base = list(super().get_readonly_fields(request, obj))
+        model_field_names = {f.name for f in getattr(self.model, "_meta").get_fields()}
+        for name in ("created_at", "updated_at"):
+            if name in model_field_names and name not in base:
+                base.append(name)
+        return tuple(base)
 
 
 # --- AUTO REGISTRATION FUNCTIONALITY ---

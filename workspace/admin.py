@@ -1,5 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
+from common.admin import BaseModelAdmin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
@@ -16,32 +17,32 @@ from .models import (
 
 
 @admin.register(Workspace)
-class WorkspaceAdmin(admin.ModelAdmin):
+class WorkspaceAdmin(BaseModelAdmin):
     list_display = ("name", "owner", "created_at")
 
 
 @admin.register(WorkspaceRole)
-class WorkspaceRoleAdmin(admin.ModelAdmin):
+class WorkspaceRoleAdmin(BaseModelAdmin):
     list_display = ("workspace", "name", "is_system")
 
 
 @admin.register(WorkspaceMembership)
-class WorkspaceMembershipAdmin(admin.ModelAdmin):
+class WorkspaceMembershipAdmin(BaseModelAdmin):
     list_display = ("workspace", "user", "role", "is_active")
 
 
 @admin.register(RolePermission)
-class RolePermissionAdmin(admin.ModelAdmin):
+class RolePermissionAdmin(BaseModelAdmin):
     list_display = ("role", "code", "scope")
 
 
 @admin.register(UserPermissionOverride)
-class UserPermissionOverrideAdmin(admin.ModelAdmin):
+class UserPermissionOverrideAdmin(BaseModelAdmin):
     list_display = ("membership", "code", "scope", "allow")
 
 
 @admin.register(Subscription)
-class SubscriptionAdmin(admin.ModelAdmin):
+class SubscriptionAdmin(BaseModelAdmin):
     list_display = ("workspace", "plan", "status")
 
 
@@ -52,6 +53,7 @@ admin.site.unregister(Group)
 
 
 # --- REGISTER ADMIN CLASSES ---
+
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
@@ -108,6 +110,7 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
         ),
     )
 
+
 @admin.register(Organization)
-class OrganizationAdmin(admin.ModelAdmin):
+class OrganizationAdmin(BaseModelAdmin):
     list_display = ("name", "owner", "created_at")
