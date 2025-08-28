@@ -6,6 +6,14 @@ from logging import getLogger
 from dotenv import load_dotenv
 from datetime import timedelta
 from common.unfold import UNFOLD_CONFIG
+import importlib
+
+try:
+    UNFOLD_CONSTANCE_ADDITIONAL_FIELDS = importlib.import_module(
+        "unfold.contrib.constance.settings"
+    ).UNFOLD_CONSTANCE_ADDITIONAL_FIELDS  # type: ignore[attr-defined]
+except Exception:  # pragma: no cover - fallback when Unfold contrib not importable
+    UNFOLD_CONSTANCE_ADDITIONAL_FIELDS = {}
 
 
 # --- LOGGER ---
@@ -70,6 +78,8 @@ UNFOLD_APPS = [
     "unfold.contrib.inlines",
     "unfold.contrib.simple_history",
     "unfold.contrib.import_export",
+    # Must be before 'constance' to ensure Unfold templates are used
+    "unfold.contrib.constance",
 ]
 
 THIRD_PARTY_APPS = [
@@ -88,6 +98,9 @@ THIRD_PARTY_APPS = [
     "simple_history",
     "import_export",
     "djstripe",
+    # Constance settings in admin using the database backend
+    "constance",
+    "constance.backends.database",
 ]
 
 # Local applications
@@ -303,6 +316,54 @@ LOGGING = {
 
 # --- UNFOLD CONFIGURATION ---
 UNFOLD = UNFOLD_CONFIG
+
+# --- CONSTANCE ---
+CONSTANCE_BACKEND = "constance.backends.database.DatabaseBackend"
+CONSTANCE_ADDITIONAL_FIELDS = {
+    **UNFOLD_CONSTANCE_ADDITIONAL_FIELDS,
+}
+
+# Primary settings to expose in Admin. Keep sensitive values plain for now.
+# TODO: Plug encrypt/decrypt for sensitive settings before production.
+CONSTANCE_CONFIG = {
+    # Stripe
+    "STRIPE_LIVE_MODE": (False, "If true, use live keys; otherwise use test keys."),
+    "STRIPE_LIVE_SECRET_KEY": ("", "Stripe live secret key (sk_live_...)."),
+    "STRIPE_TEST_SECRET_KEY": ("", "Stripe test secret key (sk_test_...)."),
+    "STRIPE_PUBLISHABLE_KEY": ("", "Stripe publishable key (pk_...)."),
+    # Frontend
+    "FRONTEND_URL": (
+        "http://localhost/",
+        "Frontend base URL for redirect after checkout.",
+    ),
+    # Stripe Price IDs (per plan and interval)
+    "STRIPE_PRICE_PRO_MONTHLY": ("", "Stripe Price ID for PRO monthly."),
+    "STRIPE_PRICE_PRO_YEARLY": ("", "Stripe Price ID for PRO yearly."),
+    "STRIPE_PRICE_BUSINESS_MONTHLY": ("", "Stripe Price ID for BUSINESS monthly."),
+    "STRIPE_PRICE_BUSINESS_YEARLY": ("", "Stripe Price ID for BUSINESS yearly."),
+    # Optional generic price IDs (fallbacks)
+    "STRIPE_PRICE_PRO": ("", "Fallback Price ID for PRO (no interval)."),
+    "STRIPE_PRICE_BUSINESS": ("", "Fallback Price ID for BUSINESS (no interval)."),
+    "STRIPE_PRICE_FREE": ("", "Optional Price ID for FREE plan, if applicable."),
+}
+
+# Optional grouping in Admin for better UX
+CONSTANCE_CONFIG_FIELDSETS = {
+    "Billing": (
+        "STRIPE_LIVE_MODE",
+        "STRIPE_LIVE_SECRET_KEY",
+        "STRIPE_TEST_SECRET_KEY",
+        "STRIPE_PUBLISHABLE_KEY",
+        "STRIPE_PRICE_PRO_MONTHLY",
+        "STRIPE_PRICE_PRO_YEARLY",
+        "STRIPE_PRICE_BUSINESS_MONTHLY",
+        "STRIPE_PRICE_BUSINESS_YEARLY",
+        "STRIPE_PRICE_PRO",
+        "STRIPE_PRICE_BUSINESS",
+        "STRIPE_PRICE_FREE",
+    ),
+    "Frontend": ("FRONTEND_URL",),
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

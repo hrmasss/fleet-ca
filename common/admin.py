@@ -1,4 +1,5 @@
 from django.db import models
+from constance.admin import Config, ConstanceAdmin
 from django.contrib import admin
 from django.apps import apps
 from unfold.admin import (
@@ -47,6 +48,19 @@ class BaseModelAdmin(ModelAdmin):
             if name in model_field_names and name not in base:
                 base.append(name)
         return tuple(base)
+
+
+# --- Constance (dynamic settings) ---
+
+try:
+    admin.site.unregister([Config])
+except admin.sites.NotRegistered:
+    pass
+
+try:
+    admin.site.register([Config], ConstanceAdmin)
+except admin.sites.AlreadyRegistered:
+    pass
 
 
 # --- AUTO REGISTRATION FUNCTIONALITY ---
