@@ -3,6 +3,7 @@ from django.db import models
 from common.models import TimeStampedModel
 from safedelete.models import SafeDeleteModel
 from safedelete import SOFT_DELETE_CASCADE
+from simple_history.models import HistoricalRecords
 
 
 class Subscription(SafeDeleteModel, TimeStampedModel):
@@ -16,3 +17,4 @@ class Subscription(SafeDeleteModel, TimeStampedModel):
     status = models.CharField(max_length=20, default="active")
     current_period_end = models.DateTimeField(null=True, blank=True)
     limits = models.JSONField(default=dict, blank=True)
+    history = HistoricalRecords()

@@ -2,8 +2,11 @@ from django.contrib import admin
 from unfold.admin import ModelAdmin
 from common.admin import BaseModelAdmin
 from django.contrib.auth.models import Group
+from simple_history.admin import SimpleHistoryAdmin
+from import_export.admin import ImportExportModelAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
+from unfold.contrib.import_export.forms import ExportForm, ImportForm
 from workspace.models import User
 from .models import (
     Workspace,
@@ -17,17 +20,19 @@ from .models import (
 
 
 @admin.register(Workspace)
-class WorkspaceAdmin(BaseModelAdmin):
+class WorkspaceAdmin(ImportExportModelAdmin, SimpleHistoryAdmin, BaseModelAdmin):
+    import_form_class = ImportForm
+    export_form_class = ExportForm
     list_display = ("name", "owner", "created_at")
 
 
 @admin.register(WorkspaceRole)
-class WorkspaceRoleAdmin(BaseModelAdmin):
+class WorkspaceRoleAdmin(SimpleHistoryAdmin, BaseModelAdmin):
     list_display = ("workspace", "name", "is_system")
 
 
 @admin.register(WorkspaceMembership)
-class WorkspaceMembershipAdmin(BaseModelAdmin):
+class WorkspaceMembershipAdmin(SimpleHistoryAdmin, BaseModelAdmin):
     list_display = ("workspace", "user", "role", "is_active")
 
 
@@ -42,7 +47,9 @@ class UserPermissionOverrideAdmin(BaseModelAdmin):
 
 
 @admin.register(Subscription)
-class SubscriptionAdmin(BaseModelAdmin):
+class SubscriptionAdmin(ImportExportModelAdmin, SimpleHistoryAdmin, BaseModelAdmin):
+    import_form_class = ImportForm
+    export_form_class = ExportForm
     list_display = ("workspace", "plan", "status")
 
 
@@ -112,5 +119,7 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
 
 
 @admin.register(Organization)
-class OrganizationAdmin(BaseModelAdmin):
+class OrganizationAdmin(ImportExportModelAdmin, SimpleHistoryAdmin, BaseModelAdmin):
+    import_form_class = ImportForm
+    export_form_class = ExportForm
     list_display = ("name", "owner", "created_at")

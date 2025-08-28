@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from common.models import TimeStampedModel
 from workspace.models.organization import Organization
+from simple_history.models import HistoricalRecords
 from safedelete.models import SafeDeleteModel
 from safedelete import SOFT_DELETE_CASCADE
 from django.conf import settings
@@ -23,6 +24,7 @@ class Workspace(SafeDeleteModel, TimeStampedModel):
         blank=True,
         related_name="workspaces",
     )
+    history = HistoricalRecords()
 
     def __str__(self) -> str:
         return self.name
@@ -43,6 +45,7 @@ class WorkspaceRole(SafeDeleteModel, TimeStampedModel):
     )
     name = models.CharField(max_length=50)
     is_system = models.BooleanField(default=False)
+    history = HistoricalRecords()
 
     class Meta:
         unique_together = ("workspace", "name")
@@ -68,6 +71,7 @@ class WorkspaceMembership(SafeDeleteModel, TimeStampedModel):
         related_name="members",
     )
     is_active = models.BooleanField(default=True)
+    history = HistoricalRecords()
 
     class Meta:
         unique_together = ("workspace", "user")

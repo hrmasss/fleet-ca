@@ -5,6 +5,7 @@ from common.models import TimeStampedModel
 from safedelete.models import SafeDeleteModel
 from common.fields import OptimizedImageField
 from safedelete import SOFT_DELETE_CASCADE
+from simple_history.models import HistoricalRecords
 
 
 class Organization(SafeDeleteModel, TimeStampedModel):
@@ -18,6 +19,7 @@ class Organization(SafeDeleteModel, TimeStampedModel):
     name = models.CharField(max_length=200)
     logo = OptimizedImageField(upload_to="org_logos/", null=True, blank=True)
     brand = models.JSONField(default=dict, blank=True)
+    history = HistoricalRecords()
 
     def __str__(self) -> str:
         return self.name

@@ -68,6 +68,8 @@ UNFOLD_APPS = [
     "unfold.contrib.filters",
     "unfold.contrib.forms",
     "unfold.contrib.inlines",
+    "unfold.contrib.simple_history",
+    "unfold.contrib.import_export",
 ]
 
 THIRD_PARTY_APPS = [
@@ -83,6 +85,8 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "dj_rest_auth",
     "dj_rest_auth.registration",
+    "simple_history",
+    "import_export",
 ]
 
 # Local applications
@@ -107,6 +111,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 # --- ROOT URL CONFIGURATION ---
