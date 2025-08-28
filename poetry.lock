@@ -676,6 +676,26 @@ djangorestframework = ">=3.13.0"
 with-social = ["django-allauth[socialaccount] (>=64.0.0)"]
 
 [[package]]
+name = "dj-stripe"
+version = "2.10.0"
+description = "Django + Stripe made easy"
+optional = false
+python-versions = "<4.0,>=3.11"
+groups = ["main"]
+files = [
+    {file = "dj_stripe-2.10.0-py3-none-any.whl", hash = "sha256:79dd56b02a8a239eedc321fa2c3cf9cf4dc52371b0a30c6f571ed1f9191229d3"},
+    {file = "dj_stripe-2.10.0.tar.gz", hash = "sha256:1eaea931c065ada3a901eb74983316ac9e7449fb09fa0cabeb8324efde112123"},
+]
+
+[package.dependencies]
+django = ">=5.0"
+stripe = ">=11.3.0"
+
+[package.extras]
+mysql = ["mysqlclient (>=1.4.0)"]
+postgres = ["psycopg (>=3.2.3,<4.0.0)"]
+
+[[package]]
 name = "django"
 version = "5.2.5"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
@@ -3318,6 +3338,22 @@ dev = ["build", "hatch"]
 doc = ["sphinx"]
 
 [[package]]
+name = "stripe"
+version = "12.5.0"
+description = "Python bindings for the Stripe API"
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "stripe-12.5.0-py2.py3-none-any.whl", hash = "sha256:9256226ed5c64282045a025687b34279af6227af21c954d0ddd9ff9d4b69a335"},
+    {file = "stripe-12.5.0.tar.gz", hash = "sha256:cd2b8e71216b6aed5dc1e9b5e6f658b5e21d69a60d44fb8c08f41e1f7bddedd0"},
+]
+
+[package.dependencies]
+requests = {version = ">=2.20", markers = "python_version >= \"3.0\""}
+typing_extensions = {version = ">=4.5.0", markers = "python_version >= \"3.7\""}
+
+[[package]]
 name = "tablib"
 version = "3.8.0"
 description = "Format agnostic tabular data library (XLS, JSON, YAML, CSV, etc.)"
@@ -3889,4 +3925,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "d6797eaa00f450905f428a9c1f432490788db1cdf7b627702468faf4f36c1d48"
+content-hash = "8152a5cd43b944c7a1df836400a1766c389272f6a016ff9fa45ae6b1e7b44b84"

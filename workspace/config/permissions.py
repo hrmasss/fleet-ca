@@ -1,5 +1,5 @@
 from typing import Dict
-from workspace.models import PermissionScope
+from workspace.models.permission import PermissionScope
 from .types import PermissionCode as PC
 
 PERMS: Dict[PC, PermissionScope] = {

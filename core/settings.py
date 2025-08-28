@@ -87,6 +87,7 @@ THIRD_PARTY_APPS = [
     "dj_rest_auth.registration",
     "simple_history",
     "import_export",
+    "djstripe",
 ]
 
 # Local applications
@@ -387,3 +388,15 @@ DRF_API_LOGGER_EXCLUDE_KEYS = [
     "api_key",
     "client_secret",
 ]
+
+# --- STRIPE ---
+STRIPE_LIVE_MODE = os.getenv("STRIPE_LIVE_MODE", "False") == "True"
+STRIPE_LIVE_SECRET_KEY = os.getenv("STRIPE_LIVE_SECRET_KEY")
+STRIPE_TEST_SECRET_KEY = os.getenv("STRIPE_TEST_SECRET_KEY")
+STRIPE_SECRET_KEY = (
+    STRIPE_LIVE_SECRET_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_SECRET_KEY
+)
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
+if DEBUG and not STRIPE_SECRET_KEY:
+    log.warning("Stripe secret key is not set. Checkout endpoints will fail.")

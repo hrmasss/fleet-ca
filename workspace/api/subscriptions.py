@@ -3,8 +3,10 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.response import Response
 from rest_framework import generics, serializers
 from rest_framework.permissions import IsAuthenticated
-from workspace.serializers.subscriptions import SubscriptionSerializer
-from workspace.services.onboarding import confirm_plan
+from workspace.serializers.subscriptions import (
+    SubscriptionSerializer,
+    SubscriptionUpdateSerializer,
+)
 from workspace.services.access_control import (
     WorkspaceHeaderResolverMixin,
     WorkspaceRBACPermission,
@@ -48,22 +50,11 @@ class SubscriptionView(WorkspaceHeaderResolverMixin, generics.RetrieveUpdateAPIV
             )
         ]
     )
-    def patch(self, request, *args, **kwargs):
-        sub = self.get_object()
-        ws = sub.workspace
-        # Require subscription.change
-        if not has_workspace_permission(request.user, ws, "subscription", "change"):
-            return Response({"detail": "Insufficient permissions."}, status=403)
-        # Only allow setting pending_plan (choose plan); confirmation is a separate action
-        data = {k: v for k, v in request.data.items() if k in {"pending_plan"}}
-        serializer = self.get_serializer(sub, data=data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        """Retrieve the current workspace subscription (requires X-Workspace-ID header)."""
+        return self.retrieve(request, *args, **kwargs)
 
     @extend_schema(
-        operation_id="confirm_subscription",
-        summary="Confirm pending plan",
         parameters=[
             OpenApiParameter(
                 name="X-Workspace-ID",
@@ -72,12 +63,19 @@ class SubscriptionView(WorkspaceHeaderResolverMixin, generics.RetrieveUpdateAPIV
                 location=OpenApiParameter.HEADER,
                 description="Active workspace ID.",
             )
-        ],
+        ]
     )
-    def post(self, request, *args, **kwargs):
+    @extend_schema(request=SubscriptionUpdateSerializer, responses=SubscriptionSerializer)
+    def patch(self, request, *args, **kwargs):
         sub = self.get_object()
         ws = sub.workspace
+        # Require subscription.change
         if not has_workspace_permission(request.user, ws, "subscription", "change"):
             return Response({"detail": "Insufficient permissions."}, status=403)
-        confirm_plan(ws)
-        return Response(self.get_serializer(ws.subscription).data)
+        # Only allow setting pending_plan, renew_interval, auto_renew
+        serializer = SubscriptionUpdateSerializer(sub, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(SubscriptionSerializer(sub).data)
+
+    # Removed redundant confirm POST; payment confirmation lives under billing/confirm

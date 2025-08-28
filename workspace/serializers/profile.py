@@ -53,10 +53,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "workspaces",
         ]
 
-    def get_full_name(self, obj):
+    @extend_schema_field(str)
+    def get_full_name(self, obj) -> str:
         return obj.get_full_name() or obj.username
 
-    def get_email(self, obj):
+    @extend_schema_field(str)
+    def get_email(self, obj) -> str | None:
         return obj.email or None
 
     @extend_schema_field(UserWorkspaceSerializer(many=True))

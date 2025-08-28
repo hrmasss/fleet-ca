@@ -4,6 +4,7 @@ from common.models import TimeStampedModel
 from safedelete.models import SafeDeleteModel
 from safedelete import SOFT_DELETE_CASCADE
 from simple_history.models import HistoricalRecords
+from workspace.config.types import SubscriptionInterval
 
 
 class Subscription(SafeDeleteModel, TimeStampedModel):
@@ -17,4 +18,10 @@ class Subscription(SafeDeleteModel, TimeStampedModel):
     status = models.CharField(max_length=20, default="active")
     current_period_end = models.DateTimeField(null=True, blank=True)
     limits = models.JSONField(default=dict, blank=True)
+    renew_interval = models.CharField(
+        max_length=10,
+        choices=[(e.value, e.value) for e in SubscriptionInterval],
+        default=SubscriptionInterval.MONTHLY.value,
+    )
+    auto_renew = models.BooleanField(default=True)
     history = HistoricalRecords()

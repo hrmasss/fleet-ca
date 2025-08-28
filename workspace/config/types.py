@@ -42,3 +42,8 @@ class PlanTier(str, Enum):
     FREE = "free"
     PRO = "pro"
     BUSINESS = "business"
+
+
+class SubscriptionInterval(str, Enum):
+    MONTHLY = "monthly"
+    YEARLY = "yearly"

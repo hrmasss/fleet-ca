@@ -26,6 +26,8 @@ urlpatterns = [
     path("api/auth/registration/", include("dj_rest_auth.registration.urls")),
     # Workspace app URLs
     path("api/workspace/", include(workspace_urls)),
+    # stripe
+    path("api/stripe/", include(("djstripe.urls", "djstripe"), namespace="djstripe")),
 ]
 
 if settings.DEBUG:

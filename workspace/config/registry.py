@@ -1,7 +1,7 @@
 from typing import Dict
 from django.conf import settings
 from importlib import import_module
-from workspace.models import PermissionScope
+from workspace.models.permission import PermissionScope
 
 
 def get_permissions_registry() -> Dict[str, PermissionScope]:
